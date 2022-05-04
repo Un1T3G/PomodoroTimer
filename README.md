@@ -1,11 +1,8 @@
 # Pomodoro timer - time management
 
-## Description
-  App assists you in organizing your tasks 
-  and accomplishing them efficiently with 
-  the help of the Pomodoro Technique timer.
+App assists you in organizing your tasks and accomplishing them efficiently with the help of the Pomodoro Technique timer.
 
-## Used packages
+Used packages:
 - [Flutter bloc](https://pub.dev/packages/flutter_bloc)
 - [Hive](https://pub.dev/packages/hive)
 - [Flutter hive](https://pub.dev/packages/hive_flutter)
