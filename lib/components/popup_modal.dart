@@ -3,7 +3,7 @@ import 'package:pomodoro_timer_task_management/core/values/colors.dart';
 import 'package:pomodoro_timer_task_management/core/values/constants.dart';
 import 'package:pomodoro_timer_task_management/views/widgets/action_button.dart';
 
-Future<void> openPopupModal({
+Future<void> showPopupModal({
   required BuildContext context,
   required String title,
   void Function()? onCancel,
@@ -32,13 +32,13 @@ class _PopupModal extends StatelessWidget {
   final void Function()? onConiform;
 
   void _cancel(BuildContext context) {
-    Navigator.of(context).pop();
     onCancel?.call();
+    Navigator.of(context).pop();
   }
 
   void _coniform(BuildContext context) {
-    Navigator.of(context).pop();
     onConiform?.call();
+    Navigator.of(context).pop();
   }
 
   @override
@@ -46,6 +46,7 @@ class _PopupModal extends StatelessWidget {
     return GestureDetector(
       onTap: () => _cancel(context),
       child: Container(
+        padding: const EdgeInsets.all(kDefaultMargin),
         color: kBGColor.withOpacity(0.5),
         alignment: Alignment.center,
         child: Container(

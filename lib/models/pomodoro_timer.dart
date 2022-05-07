@@ -14,6 +14,10 @@ class PomodoroTimer {
   final int longInterval;
   @HiveField(4)
   final int workCycle;
+  @HiveField(5)
+  final bool notify;
+  @HiveField(6)
+  final bool autoStart;
 
   PomodoroTimer({
     required this.workTime,
@@ -21,7 +25,21 @@ class PomodoroTimer {
     required this.longBreakTime,
     required this.longInterval,
     required this.workCycle,
+    required this.notify,
+    required this.autoStart,
   });
+
+  factory PomodoroTimer.initial() {
+    return PomodoroTimer(
+      workTime: 25,
+      shortBreakTime: 5,
+      longBreakTime: 15,
+      longInterval: 3,
+      workCycle: 4,
+      notify: true,
+      autoStart: true,
+    );
+  }
 
   PomodoroTimer copyWith({
     int? workTime,
@@ -29,6 +47,8 @@ class PomodoroTimer {
     int? longBreakTime,
     int? longInterval,
     int? workCycle,
+    bool? notify,
+    bool? autoStart,
   }) {
     return PomodoroTimer(
       workTime: workTime ?? this.workTime,
@@ -36,6 +56,8 @@ class PomodoroTimer {
       longBreakTime: longBreakTime ?? this.longBreakTime,
       longInterval: longInterval ?? this.longInterval,
       workCycle: workCycle ?? this.workCycle,
+      notify: notify ?? this.notify,
+      autoStart: autoStart ?? this.autoStart,
     );
   }
 
@@ -48,7 +70,9 @@ class PomodoroTimer {
         other.shortBreakTime == shortBreakTime &&
         other.longBreakTime == longBreakTime &&
         other.longInterval == longInterval &&
-        other.workCycle == workCycle;
+        other.workCycle == workCycle &&
+        other.notify == notify &&
+        other.autoStart == autoStart;
   }
 
   @override
@@ -57,6 +81,8 @@ class PomodoroTimer {
         shortBreakTime.hashCode ^
         longBreakTime.hashCode ^
         longInterval.hashCode ^
-        workCycle.hashCode;
+        workCycle.hashCode ^
+        notify.hashCode ^
+        autoStart.hashCode;
   }
 }

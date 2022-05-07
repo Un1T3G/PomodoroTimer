@@ -2,6 +2,7 @@ import 'package:hive_flutter/adapters.dart';
 import 'package:pomodoro_timer_task_management/core/extensions/color.dart';
 import 'package:pomodoro_timer_task_management/core/values/colors.dart';
 import 'package:pomodoro_timer_task_management/core/values/keys.dart';
+import 'package:pomodoro_timer_task_management/models/pomodoro_timer.dart';
 import 'package:pomodoro_timer_task_management/models/project.dart';
 
 final _projects = [
@@ -23,7 +24,12 @@ final _projects = [
   },
 ];
 
-Future<void> insertDefaultProject() async {
+Future<void> insertDefaultData() async {
+  await _insertDefaultProjects();
+  await _insertDefaultPomodoroTimer();
+}
+
+Future<void> _insertDefaultProjects() async {
   final box = await Hive.openBox<Project>(kMainProjectBox);
   if (box.isEmpty) {
     for (int i = 0; i < _projects.length; i++) {
@@ -32,7 +38,16 @@ Future<void> insertDefaultProject() async {
         color: _projects[i]['color'] as String,
         date: DateTime.now().toIso8601String(),
       );
-      await box.put(project.title, project);
+      await box.add(project);
     }
+  }
+}
+
+Future<void> _insertDefaultPomodoroTimer() async {
+  final box = await Hive.openBox<PomodoroTimer>(kPomodoroTimerBox);
+
+  if (box.isEmpty) {
+    final pomodoroTimer = PomodoroTimer.initial();
+    await box.add(pomodoroTimer);
   }
 }

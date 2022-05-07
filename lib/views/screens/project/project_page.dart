@@ -1,11 +1,12 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hive/hive.dart';
 import 'package:pomodoro_timer_task_management/core/extensions/color.dart';
 import 'package:pomodoro_timer_task_management/core/values/constants.dart';
 import 'package:pomodoro_timer_task_management/core/values/keys.dart';
 import 'package:pomodoro_timer_task_management/cubit/project_logic/project_cubit.dart';
 import 'package:pomodoro_timer_task_management/models/project.dart';
-import 'package:pomodoro_timer_task_management/routes/main_navigator.dart';
+import 'package:pomodoro_timer_task_management/routes/main_navigation.dart';
 import 'package:pomodoro_timer_task_management/views/widgets/action_button.dart';
 import 'package:pomodoro_timer_task_management/views/widgets/card_title.dart';
 import 'package:pomodoro_timer_task_management/views/widgets/list_button.dart';
@@ -77,12 +78,18 @@ class _Title extends StatelessWidget {
 class _MainProjectList extends StatelessWidget {
   const _MainProjectList({Key? key}) : super(key: key);
 
-  void _openDetailPage(BuildContext context, Project project) {
+  void _openDetailPage(BuildContext context, Project project) async {
+    final box = Hive.box<Project>(kMainProjectBox);
+    final projects =
+        (context.read<ProjectCubit>().state as ProjectLoaded).mainProjects;
+    final projectKey = box.keyAt(projects.indexOf(project)) as int;
+
     Navigator.of(context).pushNamed(
-      MainNavigatorRoutes.projectDetail,
+      MainNavigationRoutes.projectDetail,
       arguments: {
         'boxName': kMainProjectBox,
         'project': project,
+        'projectKey': projectKey,
       },
     );
   }
@@ -128,12 +135,18 @@ class _MainProjectList extends StatelessWidget {
 class _ProjectList extends StatelessWidget {
   const _ProjectList({Key? key}) : super(key: key);
 
-  void _openDetailPage(BuildContext context, Project project) {
+  void _openDetailPage(BuildContext context, Project project) async {
+    final box = await Hive.openBox<Project>(kProjectBox);
+    final projects =
+        (context.read<ProjectCubit>().state as ProjectLoaded).projects;
+    final projectKey = box.keyAt(projects.indexOf(project)) as int;
+
     Navigator.of(context).pushNamed(
-      MainNavigatorRoutes.projectDetail,
+      MainNavigationRoutes.projectDetail,
       arguments: {
-        'boxName': kMainProjectBox,
+        'boxName': kProjectBox,
         'project': project,
+        'projectKey': projectKey,
       },
     );
   }
@@ -182,9 +195,9 @@ class _ProjectList extends StatelessWidget {
 class _ProjectAddButton extends StatelessWidget {
   const _ProjectAddButton({Key? key}) : super(key: key);
 
-  void _openForm(BuildContext context) {
+  void _openForm(BuildContext context) async {
     Navigator.of(context).pushNamed(
-      '/project/form',
+      MainNavigationRoutes.projectForm,
       arguments: {
         'boxName': kProjectBox,
       },

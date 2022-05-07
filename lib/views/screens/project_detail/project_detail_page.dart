@@ -1,8 +1,19 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hive/hive.dart';
+import 'package:pomodoro_timer_task_management/components/popup_modal.dart';
 import 'package:pomodoro_timer_task_management/core/values/colors.dart';
 import 'package:pomodoro_timer_task_management/core/values/constants.dart';
+import 'package:pomodoro_timer_task_management/core/values/keys.dart';
+import 'package:pomodoro_timer_task_management/cubit/project_detail_logic/project_detail_cubit.dart';
+import 'package:pomodoro_timer_task_management/cubit/task_work_logic/task_work_cubit.dart';
+import 'package:pomodoro_timer_task_management/cubit/timer_logic/timer_cubit.dart';
 import 'package:pomodoro_timer_task_management/models/project.dart';
+import 'package:pomodoro_timer_task_management/models/task.dart';
+import 'package:pomodoro_timer_task_management/models/task_priority.dart';
+import 'package:pomodoro_timer_task_management/models/timer_task.dart';
+import 'package:pomodoro_timer_task_management/routes/main_navigation.dart';
+import 'package:pomodoro_timer_task_management/views/widgets/action_button.dart';
 import 'package:pomodoro_timer_task_management/views/widgets/back_button.dart';
 import 'package:pomodoro_timer_task_management/views/widgets/card_title.dart';
 import 'package:pomodoro_timer_task_management/views/widgets/page_title.dart';
@@ -13,36 +24,96 @@ class ProjectDetailPage extends StatelessWidget {
     Key? key,
     required this.boxName,
     required this.project,
+    required this.projectKey,
   }) : super(key: key);
 
   final String boxName;
   final Project project;
+  final int projectKey;
 
   @override
   Widget build(BuildContext context) {
-    return const CupertinoPageScaffold(
-      child: SafeArea(
-        child: _HasTasksBody(),
+    return BlocProvider<ProjectDetailCubit>(
+      create: (_) => ProjectDetailCubit(
+        boxName: boxName,
+        project: project,
+        projectKey: projectKey,
+      )..init(),
+      child: BlocBuilder<ProjectDetailCubit, ProjectDetailState>(
+        builder: (context, state) {
+          return CupertinoPageScaffold(
+            child: SafeArea(
+              child: state is ProjectDetailLoadedState
+                  ? const _Body()
+                  : const _Loading(),
+            ),
+          );
+        },
       ),
     );
   }
 }
 
-class _HasTasksBody extends StatelessWidget {
-  const _HasTasksBody({Key? key}) : super(key: key);
+class _Loading extends StatelessWidget {
+  const _Loading({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      shrinkWrap: true,
-      children: const [
-        _Header(),
-        _Title(),
-        _ProjectInformation(),
-        _TaskList(),
-        _CompletedTaskList(),
-      ],
+    return const Center(
+      child: CupertinoActivityIndicator(),
     );
+  }
+}
+
+class _Body extends StatelessWidget {
+  const _Body({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final cubit = context.watch<ProjectDetailCubit>();
+    final state = cubit.state as ProjectDetailLoadedState;
+    final tasksIsEmpty = state.tasks.isEmpty;
+
+    return tasksIsEmpty ? const _EmptyBody() : const _TasksBody();
+  }
+}
+
+class _EmptyBody extends StatelessWidget {
+  const _EmptyBody({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(children: [
+      ListView(
+        shrinkWrap: true,
+        children: const [
+          _Header(),
+          _Title(),
+        ],
+      ),
+      const _TaskAddButton(),
+    ]);
+  }
+}
+
+class _TasksBody extends StatelessWidget {
+  const _TasksBody({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(children: [
+      ListView(
+        shrinkWrap: true,
+        children: const [
+          _Header(),
+          _Title(),
+          _ProjectInformation(),
+          _TaskList(),
+          _CompletedTaskList(),
+        ],
+      ),
+      const _TaskAddButton(),
+    ]);
   }
 }
 
@@ -68,18 +139,36 @@ class _Header extends StatelessWidget {
 class _MoreButton extends StatelessWidget {
   const _MoreButton({Key? key}) : super(key: key);
 
+  void _openProjectEditPage(BuildContext context) async {
+    final cubit = context.read<ProjectDetailCubit>();
+
+    await Navigator.of(context).pushNamed(
+      MainNavigationRoutes.projectForm,
+      arguments: {
+        'boxName': cubit.boxName,
+        'project': cubit.project,
+        'projectKey': cubit.projectKey,
+      },
+    );
+    cubit.fetchTasks();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return CupertinoButton(
-      minSize: 0,
-      padding: EdgeInsets.zero,
-      child: const Icon(
-        CupertinoIcons.plus_circled,
-        color: kTextColor,
-        size: 25,
-      ),
-      onPressed: () {},
-    );
+    final cubit = context.read<ProjectDetailCubit>();
+
+    return cubit.boxName == kMainProjectBox
+        ? const SizedBox()
+        : CupertinoButton(
+            minSize: 0,
+            padding: EdgeInsets.zero,
+            child: const Icon(
+              CupertinoIcons.plus_circled,
+              color: kTextColor,
+              size: 25,
+            ),
+            onPressed: () => _openProjectEditPage(context),
+          );
   }
 }
 
@@ -88,51 +177,61 @@ class _Title extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return PageTitle.withHorizontalMargin(title: 'Project');
+    final cubit = context.watch<ProjectDetailCubit>();
+    final state = cubit.state as ProjectDetailLoadedState;
+    return PageTitle.withHorizontalMargin(title: state.projectTitle);
   }
 }
 
 class _ProjectInformation extends StatelessWidget {
   const _ProjectInformation({Key? key}) : super(key: key);
 
+  String _numberFormat(double number) {
+    return number.toStringAsFixed(1);
+  }
+
   @override
   Widget build(BuildContext context) {
-    const fristCard = _TaskStatisticsCard(
-      fristTitle: '3.3',
+    final cubit = context.watch<ProjectDetailCubit>();
+    final state = cubit.state as ProjectDetailLoadedState;
+
+    final fristCard = _TaskStatisticsCard(
+      fristTitle: _numberFormat(state.totalWorkTime),
       fristSubTitle: 'Work time(h)',
-      secondTitle: '4',
+      secondTitle: state.totalTaskCount.toString(),
       secondSubTitle: 'All tasks in project',
     );
 
-    const secondCard = _TaskStatisticsCard(
-      fristTitle: '2.1',
+    final secondCard = _TaskStatisticsCard(
+      fristTitle: _numberFormat(state.workedTime),
       fristSubTitle: 'Worked time(h)',
-      secondTitle: '3',
+      secondTitle: state.completedTaskCount.toString(),
       secondSubTitle: 'Completed tasks',
     );
 
     return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: kDefaultMargin),
-        child: IntrinsicHeight(
-          child: MediaQuery.of(context).size.width < 700
-              ? SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: const [
-                      fristCard,
-                      SizedBox(width: kDefaultMargin),
-                      secondCard,
-                    ],
-                  ),
-                )
-              : Row(
-                  children: const [
-                    Flexible(child: fristCard),
-                    SizedBox(width: kDefaultMargin),
-                    Flexible(child: secondCard),
+      padding: const EdgeInsets.symmetric(horizontal: kDefaultMargin),
+      child: IntrinsicHeight(
+        child: MediaQuery.of(context).size.width < 700
+            ? SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    fristCard,
+                    const SizedBox(width: kDefaultMargin),
+                    secondCard,
                   ],
                 ),
-        ));
+              )
+            : Row(
+                children: [
+                  Flexible(child: fristCard),
+                  const SizedBox(width: kDefaultMargin),
+                  Flexible(child: secondCard),
+                ],
+              ),
+      ),
+    );
   }
 }
 
@@ -219,87 +318,209 @@ class _TaskList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final flag = 15 > 3;
+    final cubit = context.watch<ProjectDetailCubit>();
+    final state = cubit.state as ProjectDetailLoadedState;
+    final tasks = state.tasks.where((e) => e.isDone == false).toList();
 
-    return flag
-        ? Column(
+    return tasks.isEmpty
+        ? const SizedBox()
+        : Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               CardTitle.withHorizontalMargin(title: 'Tasks'),
-              const _TaskCard(),
-              const _TaskCard(),
+              ...List.generate(
+                tasks.length,
+                (index) => _TaskCard(task: tasks[index]),
+              ),
             ],
-          )
-        : const SizedBox();
+          );
   }
 }
 
 class _TaskCard extends StatelessWidget {
-  const _TaskCard({Key? key}) : super(key: key);
+  const _TaskCard({
+    Key? key,
+    required this.task,
+  }) : super(key: key);
+
+  final Task task;
+
+  bool _taskIsWorking(BuildContext context) {
+    final cubit = context.read<ProjectDetailCubit>();
+    final taskWorkCubit = context.read<TaskWorkCubit>();
+
+    final timerTask = TimerTask(
+      boxName: cubit.boxName,
+      projectKey: cubit.projectKey,
+      task: task,
+    );
+
+    return taskWorkCubit.isEqual(timerTask);
+  }
+
+  void _openTaskDeleteModal(BuildContext context) async {
+    final cubit = context.read<ProjectDetailCubit>();
+
+    if (_taskIsWorking(context)) {
+      _openTimerStopModal(context);
+    }
+
+    await showPopupModal(
+      context: context,
+      title: 'Are you sure you want to delete this task?',
+      onConiform: () {
+        cubit.deleteTask(task);
+        Navigator.of(context).pop();
+      },
+    );
+  }
+
+  void _openTimerStopModal(BuildContext context) async {
+    final cubit = context.read<TimerCubit>();
+
+    await showPopupModal(
+      context: context,
+      title: 'Are you sure you want to stop timer?',
+      onConiform: () async {
+        cubit.stop();
+      },
+    );
+  }
+
+  void _openTaskDetailPage(BuildContext context) async {
+    final cubit = context.read<ProjectDetailCubit>();
+
+    if (_taskIsWorking(context)) {
+      _openTimerStopModal(context);
+    }
+
+    await Navigator.of(context).pushNamed(
+      MainNavigationRoutes.projectDetailForm,
+      arguments: {
+        'boxName': cubit.boxName,
+        'projectKey': cubit.projectKey,
+        'task': task,
+      },
+    );
+
+    cubit.fetchTasks();
+  }
+
+  void _openTimerPage(BuildContext context) async {
+    final cubit = context.read<ProjectDetailCubit>();
+    final taskWorkCubit = context.read<TaskWorkCubit>();
+
+    final timerTask = TimerTask(
+      boxName: cubit.boxName,
+      projectKey: cubit.projectKey,
+      task: task,
+    );
+
+    final result = await taskWorkCubit.trySetTimerTask(timerTask);
+
+    if (result) {
+      Navigator.of(context).pushNamed(MainNavigationRoutes.timer);
+    } else {
+      _openTimerStopModal(context);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return RounedCard.withHorizontalMargin(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          const _CircleBordered(color: kYellowColor),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: const [
-                    Text(
-                      'Title',
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: kTextColor,
-                      ),
-                    ),
-                    Text(
-                      '0/6',
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: kTextColor,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: const [
-                    Text(
-                      '0 minute',
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: kGreyColor,
-                      ),
-                    ),
-                    Text(
-                      '25 min',
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: kGreyColor,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+    return Padding(
+      padding: const EdgeInsets.only(
+        left: kDefaultMargin,
+        right: kDefaultMargin,
+        bottom: kDefaultMargin * 0.9,
+      ),
+      child: CupertinoButton(
+        minSize: 0,
+        padding: const EdgeInsets.all(kDefaultMargin / 2),
+        color: kCardColor,
+        borderRadius: BorderRadius.circular(kDefaultRadius),
+        onPressed: () => _openTaskDetailPage(context),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            _CircleBordered(
+              color: task.priority.color,
+              child: task.isDone == true
+                  ? const Icon(
+                      CupertinoIcons.checkmark_alt,
+                      color: kTextColor,
+                      size: 16,
+                    )
+                  : null,
+              onPressed: () =>
+                  context.read<ProjectDetailCubit>().toggleTask(task),
             ),
-          ),
-          const SizedBox(width: 10),
-          const _CircleBordered(
-            color: kIndigoColor,
-            child: Icon(
-              CupertinoIcons.play,
-              color: kIndigoColor,
-              size: 15,
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        task.title,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          color: kTextColor,
+                        ),
+                      ),
+                      Text(
+                        '${task.workedInterval ?? 0}/${task.pomodoroTimer.workCycle}',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          color: kTextColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: kDefaultMargin / 2),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        '${task.workedTime ?? 0} minute',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          color: kGreyColor,
+                        ),
+                      ),
+                      Text(
+                        '${task.pomodoroTimer.workTime} min',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          color: kGreyColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+            const SizedBox(width: 10),
+            CupertinoButton(
+              minSize: 0,
+              padding: EdgeInsets.zero,
+              child: task.isDone == true
+                  ? const Icon(
+                      CupertinoIcons.trash_circle,
+                      color: kRedColor,
+                      size: 32,
+                    )
+                  : const Icon(
+                      CupertinoIcons.play_circle,
+                      color: kIndigoColor,
+                      size: 32,
+                    ),
+              onPressed: () => task.isDone == true
+                  ? _openTaskDeleteModal(context)
+                  : _openTimerPage(context),
+            )
+          ],
+        ),
       ),
     );
   }
@@ -310,18 +531,22 @@ class _CompletedTaskList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final flag = 15 > 3;
+    final cubit = context.watch<ProjectDetailCubit>();
+    final state = cubit.state as ProjectDetailLoadedState;
+    final tasks = state.tasks.where((e) => e.isDone == true).toList();
 
-    return flag
-        ? Column(
+    return tasks.isEmpty
+        ? const SizedBox()
+        : Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               CardTitle.withHorizontalMargin(title: 'Completed Tasks'),
-              const _TaskCard(),
-              const _TaskCard(),
+              ...List.generate(
+                tasks.length,
+                (index) => _TaskCard(task: tasks[index]),
+              ),
             ],
-          )
-        : const SizedBox();
+          );
   }
 }
 
@@ -330,23 +555,60 @@ class _CircleBordered extends StatelessWidget {
     Key? key,
     required this.color,
     this.child,
+    required this.onPressed,
   }) : super(key: key);
 
   final Color color;
   final Widget? child;
+  final void Function() onPressed;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 25,
-      height: 25,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.3),
-        shape: BoxShape.circle,
-        border: Border.all(color: color),
+    return GestureDetector(
+      onTap: onPressed.call,
+      child: Container(
+        width: 25,
+        height: 25,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.3),
+          shape: BoxShape.circle,
+          border: Border.all(color: color),
+        ),
+        child: child,
       ),
-      child: child,
+    );
+  }
+}
+
+class _TaskAddButton extends StatelessWidget {
+  const _TaskAddButton({Key? key}) : super(key: key);
+
+  void _openTaskFormPage(BuildContext context) async {
+    final cubit = context.read<ProjectDetailCubit>();
+
+    await Navigator.of(context).pushNamed(
+      MainNavigationRoutes.projectDetailForm,
+      arguments: {
+        'boxName': cubit.boxName,
+        'projectKey': cubit.projectKey,
+      },
+    );
+
+    cubit.fetchTasks();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: Padding(
+        padding: const EdgeInsets.all(kDefaultMargin),
+        child: ActionButton.withChildText(
+          title: 'Add Task',
+          onPressed: () => _openTaskFormPage(context),
+        ),
+      ),
     );
   }
 }

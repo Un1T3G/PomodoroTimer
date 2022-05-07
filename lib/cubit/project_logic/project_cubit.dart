@@ -31,7 +31,10 @@ class ProjectCubit extends Cubit<ProjectState> {
       return null;
     }
 
-    return project.tasks!.where((element) => element.isDone!).length;
+    int length =
+        project.tasks!.where((element) => element.isDone == false).length;
+
+    return length == 0 ? null : length;
   }
 
   void _setupBox(String boxName) async {

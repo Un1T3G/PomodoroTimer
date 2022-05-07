@@ -16,7 +16,7 @@ class ListButton extends StatelessWidget {
   final String title;
   final Color? titleColor;
   final Widget trailing;
-  final Function() onPressed;
+  final void Function() onPressed;
 
   factory ListButton.withLeadingIcon({
     Key? key,
@@ -26,7 +26,7 @@ class ListButton extends StatelessWidget {
     required String title,
     Color? titleColor,
     Widget? trailing,
-    required Function() onPressed,
+    required void Function() onPressed,
   }) {
     return ListButton(
       key: key,
@@ -39,6 +39,34 @@ class ListButton extends StatelessWidget {
       titleColor: titleColor,
       trailing: trailing ?? const SizedBox(),
       onPressed: onPressed,
+    );
+  }
+
+  factory ListButton.withTrailingSwitch({
+    Key? key,
+    required IconData iconData,
+    double? iconSize,
+    Color? iconColor,
+    required String title,
+    Color? titleColor,
+    Widget? trailing,
+    required bool value,
+    required void Function(bool) onPressed,
+  }) {
+    return ListButton(
+      key: key,
+      leading: Icon(
+        iconData,
+        size: iconSize,
+        color: iconColor,
+      ),
+      title: title,
+      titleColor: titleColor,
+      trailing: CupertinoSwitch(
+        value: value,
+        onChanged: onPressed,
+      ),
+      onPressed: () => onPressed.call(!value),
     );
   }
 

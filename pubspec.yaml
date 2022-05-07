@@ -36,6 +36,10 @@ dependencies:
   hive: ^2.1.0
   hive_flutter: ^1.1.0
   flutter_bloc: ^8.0.1
+  syncfusion_flutter_gauges: ^19.4.56
+  flutter_native_splash: ^2.1.6
+  flutter_local_notifications: ^9.4.0
+  just_audio: ^0.9.20
 
 dev_dependencies:
   flutter_test:

@@ -22,13 +22,15 @@ class PomodoroTimerAdapter extends TypeAdapter<PomodoroTimer> {
       longBreakTime: fields[2] as int,
       longInterval: fields[3] as int,
       workCycle: fields[4] as int,
+      notify: fields[5] as bool,
+      autoStart: fields[6] as bool,
     );
   }
 
   @override
   void write(BinaryWriter writer, PomodoroTimer obj) {
     writer
-      ..writeByte(5)
+      ..writeByte(7)
       ..writeByte(0)
       ..write(obj.workTime)
       ..writeByte(1)
@@ -38,7 +40,11 @@ class PomodoroTimerAdapter extends TypeAdapter<PomodoroTimer> {
       ..writeByte(3)
       ..write(obj.longInterval)
       ..writeByte(4)
-      ..write(obj.workCycle);
+      ..write(obj.workCycle)
+      ..writeByte(5)
+      ..write(obj.notify)
+      ..writeByte(6)
+      ..write(obj.autoStart);
   }
 
   @override

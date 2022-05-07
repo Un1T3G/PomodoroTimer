@@ -5,6 +5,7 @@ import 'package:pomodoro_timer_task_management/core/values/colors.dart';
 import 'package:pomodoro_timer_task_management/core/values/constants.dart';
 import 'package:pomodoro_timer_task_management/cubit/project_form_logic/project_form_cubit.dart';
 import 'package:pomodoro_timer_task_management/models/project.dart';
+import 'package:pomodoro_timer_task_management/routes/main_navigation.dart';
 import 'package:pomodoro_timer_task_management/views/widgets/action_button.dart';
 import 'package:pomodoro_timer_task_management/views/widgets/back_button.dart';
 import 'package:pomodoro_timer_task_management/views/widgets/card_title.dart';
@@ -16,10 +17,12 @@ class ProjectFormPage extends StatelessWidget {
     Key? key,
     required this.boxName,
     this.project,
+    this.projectKey,
   }) : super(key: key);
 
   final String boxName;
   final Project? project;
+  final int? projectKey;
 
   @override
   Widget build(BuildContext context) {
@@ -27,6 +30,7 @@ class ProjectFormPage extends StatelessWidget {
       create: (context) => ProjectformCubit(
         boxName: boxName,
         project: project,
+        projectKey: projectKey,
       ),
       child: CupertinoPageScaffold(
         child: SafeArea(
@@ -79,10 +83,16 @@ class _DeleteProjectButton extends StatelessWidget {
   const _DeleteProjectButton({Key? key}) : super(key: key);
 
   void _showModal(BuildContext context) {
-    openPopupModal(
+    final cubit = context.read<ProjectformCubit>();
+
+    showPopupModal(
       context: context,
       title: 'Are you sure delete project?',
-      onConiform: context.read<ProjectformCubit>().deleteProject,
+      onConiform: () async {
+        await cubit.deleteProject();
+        Navigator.of(context)
+            .pushReplacementNamed(MainNavigationRoutes.projects);
+      },
     );
   }
 
@@ -148,7 +158,17 @@ class _ProjectNameField extends StatelessWidget {
           color: kCardColor,
           borderRadius: BorderRadius.circular(8),
         ),
-        onChanged: context.read<ProjectformCubit>().changeProjectTitle,
+        controller: TextEditingController(
+          text: context.read<ProjectformCubit>().state.projectTitle,
+        ),
+        onChanged: (value) {
+          final cubit = context.read<ProjectformCubit>();
+          cubit.changeState(
+            cubit.state.copyWith(
+              projectTitle: value,
+            ),
+          );
+        },
       ),
     );
   }
@@ -181,7 +201,14 @@ class _ProjectColorPicker extends StatelessWidget {
           projectColors.length,
           (index) => _ColoredCircleButton(
             color: projectColors[index],
-            onPick: context.read<ProjectformCubit>().changeProjectColor,
+            onPick: (value) {
+              final cubit = context.read<ProjectformCubit>();
+              cubit.changeState(
+                cubit.state.copyWith(
+                  projectColor: value,
+                ),
+              );
+            },
             isSelected: index == projectColors.indexOf(color),
           ),
         ),
@@ -231,15 +258,17 @@ class _ActionButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<ProjectformCubit>();
+    final isEditMode = cubit.state.isEditMode;
+    final action = isEditMode ? cubit.saveProject : cubit.addProject;
 
     return Align(
       alignment: Alignment.bottomCenter,
       child: ActionButton.withChildText(
-        onPressed: () {
-          cubit.putProject();
+        onPressed: () async {
+          await action.call();
           Navigator.of(context).pop();
         },
-        title: 'Add Project',
+        title: isEditMode ? 'Save' : 'Add Project',
         margin: const EdgeInsets.all(kDefaultMargin),
       ),
     );

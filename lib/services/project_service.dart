@@ -16,6 +16,15 @@ class ProjectService {
     return true;
   }
 
+  Future<void> upadeProject(Project oldProject, Project newProject) async {
+    if (oldProject == newProject) {
+      return;
+    }
+
+    await deleteProject(oldProject);
+    await putProject(newProject);
+  }
+
   Future<void> putProject(Project project) async {
     final box = await Hive.openBox<Project>(boxName);
     await box.put(project.title, project);

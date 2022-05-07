@@ -9,7 +9,7 @@ class ActionButton extends StatelessWidget {
     this.color,
     required this.child,
     this.childAlignment,
-    this.pading,
+    this.padding,
     this.margin,
   }) : super(key: key);
 
@@ -17,7 +17,7 @@ class ActionButton extends StatelessWidget {
   final Color? color;
   final Widget child;
   final Alignment? childAlignment;
-  final EdgeInsets? pading;
+  final EdgeInsets? padding;
   final EdgeInsets? margin;
 
   factory ActionButton.withChildText({
@@ -27,7 +27,7 @@ class ActionButton extends StatelessWidget {
     required String title,
     Color? titleColor,
     Alignment? childAlignment,
-    EdgeInsets? pading,
+    EdgeInsets? padding,
     EdgeInsets? margin,
   }) {
     return ActionButton(
@@ -43,6 +43,7 @@ class ActionButton extends StatelessWidget {
         ),
       ),
       margin: margin,
+      padding: padding,
     );
   }
 
@@ -53,9 +54,10 @@ class ActionButton extends StatelessWidget {
       child: Padding(
         padding: margin ?? EdgeInsets.zero,
         child: CupertinoButton(
+          minSize: 0,
           color: color ?? kIndigoColor,
           alignment: childAlignment ?? Alignment.center,
-          padding: pading ??
+          padding: padding ??
               const EdgeInsets.symmetric(vertical: kDefaultMargin / 2),
           onPressed: onPressed ?? () {},
           child: child,
