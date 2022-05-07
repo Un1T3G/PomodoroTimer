@@ -1,6 +1,14 @@
-# pomodoro_timer_task_management
+# Pomodoro timer - time management
 
-A new Flutter project.
+App assists you in organizing your tasks and accomplishing them efficiently with the help of the Pomodoro Technique timer.
+
+Used packages:
+- [Flutter bloc](https://pub.dev/packages/flutter_bloc)
+- [Hive](https://pub.dev/packages/hive)
+- [Flutter hive](https://pub.dev/packages/hive_flutter)
+- [Syncfusion flutter gauges](https://pub.dev/packages/syncfusion_flutter_gauges)
+- [Just audio](https://pub.dev/packages/just_audio)
+- [Flutter local notifications](https://pub.dev/packages/flutter_local_notifications)
 
 ## Getting Started
 
