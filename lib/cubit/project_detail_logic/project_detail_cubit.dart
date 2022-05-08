@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:pomodoro_timer_task_management/models/project.dart';
 import 'package:pomodoro_timer_task_management/models/task.dart';
+import 'package:pomodoro_timer_task_management/services/task_service.dart';
 
 part 'project_detail_state.dart';
 
@@ -17,16 +18,27 @@ class ProjectDetailCubit extends Cubit<ProjectDetailState> {
     required this.projectKey,
   }) : super(ProjectDetailLoading());
 
-  late final Box<Project> _box;
+  late final Box<Project> _projectBox;
+  late final TaskService _taskService;
 
   void init() async {
     emit(ProjectDetailLoading());
-    _box = await Hive.openBox<Project>(boxName);
+
+    _projectBox = await Hive.openBox<Project>(boxName);
+    _projectBox.listenable().addListener(updateProject);
+
+    _taskService = TaskService(
+      boxName: boxName,
+      projectKey: projectKey,
+      onUpdated: updateState,
+    );
+    await _taskService.init();
+
     updateState();
   }
 
   void updateState() {
-    final tasks = _getTasks();
+    final tasks = _taskService.getTasks();
 
     final projectTitle = project.title;
     final totalWorkTime =
@@ -51,50 +63,30 @@ class ProjectDetailCubit extends Cubit<ProjectDetailState> {
   }
 
   void deleteTask(Task task) async {
-    final tasks = project.tasks!;
-    tasks.remove(task);
-
-    project = project.copyWith(tasks: tasks);
-    await _box.put(projectKey, project);
-
-    updateState();
+    await _taskService.deleteTask(task);
   }
 
   void toggleTask(Task task) async {
-    final tasks = project.tasks!;
-    final index = tasks.indexOf(task);
-
-    tasks.remove(task);
     task = task.copyWith(
       isDone: !task.isDone!,
     );
-    tasks.insert(index, task);
 
-    project = project.copyWith(tasks: tasks);
-    await _box.put(projectKey, project);
-
-    updateState();
+    await _taskService.tryUpdateTask(task, task);
   }
 
-  void fetchTasks() async {
-    emit(ProjectDetailLoading());
-
-    final box = await Hive.openBox<Project>(boxName);
-    final newProject = box.get(projectKey);
-
-    if (newProject != null) {
-      project = newProject;
-      updateState();
+  void updateProject() {
+    final newProject = _projectBox.get(projectKey);
+    if (newProject == null) {
+      return;
     }
+
+    project = newProject;
+    updateState();
   }
 
   @override
   Future<void> close() async {
-    //_box.listenable().removeListener(updateProject);
     await super.close();
-  }
-
-  List<Task> _getTasks() {
-    return project.tasks ?? [];
+    _projectBox.listenable().removeListener(updateProject);
   }
 }

@@ -2,9 +2,9 @@ import 'package:bloc/bloc.dart';
 import 'package:hive/hive.dart';
 import 'package:pomodoro_timer_task_management/cubit/timer_logic/timer_cubit.dart';
 import 'package:pomodoro_timer_task_management/cubit/timer_logic/timer_event.dart';
-import 'package:pomodoro_timer_task_management/models/project.dart';
 import 'package:pomodoro_timer_task_management/models/task.dart';
 import 'package:pomodoro_timer_task_management/models/timer_task.dart';
+import 'package:pomodoro_timer_task_management/services/task_service.dart';
 
 import '../../core/values/keys.dart';
 
@@ -15,6 +15,7 @@ class TaskWorkCubit extends Cubit<TaskWorkState> {
 
   TimerTask? _timerTask;
   late final Box<TimerTask> _timerTaskBox;
+  TaskService? _taskService;
 
   void init() async {
     _timerTaskBox = await Hive.openBox<TimerTask>(kTimerTaskBox);
@@ -33,6 +34,12 @@ class TaskWorkCubit extends Cubit<TaskWorkState> {
     if (_timerTask != null) {
       return false;
     }
+
+    _taskService = TaskService(
+      boxName: timerTask.boxName,
+      projectKey: timerTask.projectKey,
+    );
+    await _taskService!.init();
 
     _timerTask = timerTask;
     await _timerTaskBox.put(kTimerTaskBox, timerTask);
@@ -75,26 +82,15 @@ class TaskWorkCubit extends Cubit<TaskWorkState> {
   }
 
   Future<void> _updateTask(bool taskIsDone) async {
-    final box = await Hive.openBox<Project>(_timerTask!.boxName);
-    final project = box.get(_timerTask!.projectKey)!;
+    final oldTask = _timerTask!.task;
 
-    final tasks = project.tasks ?? [];
-    final taskIndex = tasks.indexOf(_timerTask!.task);
-
-    tasks.removeAt(taskIndex);
-
-    final task = _timerTask!.task;
-
-    tasks.insert(
-      taskIndex,
-      task.copyWith(
-        workedTime: (task.workedTime ?? 0) + state.workTime,
-        workedInterval: (task.workedInterval ?? 0) + state.workCycle,
-        isDone: taskIsDone,
-      ),
+    final newTask = _timerTask!.task.copyWith(
+      workedTime: (oldTask.workedTime ?? 0) + state.workTime,
+      workedInterval: (oldTask.workedInterval ?? 0) + state.workCycle,
+      isDone: taskIsDone,
     );
 
-    await box.put(_timerTask!.projectKey, project.copyWith(tasks: tasks));
+    await _taskService!.tryUpdateTask(oldTask, newTask);
   }
 
   void _saveChanges({bool taskIsDone = false}) async {
@@ -106,7 +102,12 @@ class TaskWorkCubit extends Cubit<TaskWorkState> {
       await _timerTaskBox.delete(kTimerTaskBox);
     }
 
+    _reset();
+  }
+
+  void _reset() {
     _timerTask = null;
+    _taskService = null;
     emit(TaskWorkState.initial());
   }
 }

@@ -1,9 +1,8 @@
 import 'package:bloc/bloc.dart';
-import 'package:hive/hive.dart';
 import 'package:pomodoro_timer_task_management/models/pomodoro_timer.dart';
-import 'package:pomodoro_timer_task_management/models/project.dart';
 import 'package:pomodoro_timer_task_management/models/task.dart';
 import 'package:pomodoro_timer_task_management/models/task_priority.dart';
+import 'package:pomodoro_timer_task_management/services/task_service.dart';
 
 part 'project_detail_form_state.dart';
 
@@ -18,48 +17,41 @@ class ProjectDetailFormCubit extends Cubit<ProjectDetailFormState> {
     this.task,
   }) : super(ProjectDetailFormState.initial());
 
-  late final Project _project;
-  late final Box<Project> _box;
+  late final TaskService _taskService;
 
   void init() async {
     if (task != null) {
-      emit(state.copyWith(
-        taskTitle: task!.title,
-        pomodoroTimer: task!.pomodoroTimer,
-        isEditing: true,
-      ));
+      emit(
+        state.copyWith(
+          taskTitle: task!.title,
+          pomodoroTimer: task!.pomodoroTimer,
+          isEditing: true,
+        ),
+      );
     }
 
-    _box = await Hive.openBox<Project>(boxName);
-    _project = _box.get(projectKey)!;
+    _taskService = TaskService(
+      boxName: boxName,
+      projectKey: projectKey,
+    );
+    await _taskService.init();
   }
 
   void changeState(ProjectDetailFormState state) {
     emit(state);
   }
 
-  Future<void> saveTask() async {
-    final tasks = _project.tasks!;
-    final index = tasks.indexOf(task!);
-
-    if (_taskTitleIsContains(tasks) && task!.title != state.taskTitle) {
-      return;
-    }
-
-    tasks.removeAt(index);
+  Future<bool> trySaveTask() async {
     final newTask = task!.copyWith(
       title: state.taskTitle,
       priority: state.taskPriority,
       pomodoroTimer: state.pomodoroTimer,
     );
 
-    tasks.insert(index, newTask);
-    await _box.put(projectKey, _project.copyWith(tasks: tasks));
+    return await _taskService.tryUpdateTask(task!, newTask);
   }
 
-  Future<void> addTask() async {
-    final tasks = _project.tasks ?? [];
-
+  Future<bool> tryAddTask() async {
     final task = Task(
       title: state.taskTitle,
       priority: state.taskPriority,
@@ -70,23 +62,10 @@ class ProjectDetailFormCubit extends Cubit<ProjectDetailFormState> {
       date: DateTime.now().toIso8601String(),
     );
 
-    if (_taskTitleIsContains(tasks)) {
-      return;
-    }
-
-    tasks.add(task);
-    await _box.put(projectKey, _project.copyWith(tasks: tasks));
+    return await _taskService.tryAddTask(task);
   }
 
   Future<void> deleteTask() async {
-    final tasks = _project.tasks!;
-
-    tasks.remove(task!);
-
-    await _box.put(projectKey, _project.copyWith(tasks: tasks));
-  }
-
-  bool _taskTitleIsContains(List<Task> tasks) {
-    return tasks.map((e) => e.title).contains(state.taskTitle);
+    await _taskService.deleteTask(task!);
   }
 }

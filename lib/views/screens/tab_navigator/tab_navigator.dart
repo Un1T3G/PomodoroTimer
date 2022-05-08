@@ -16,8 +16,6 @@ class TabNavigator extends StatefulWidget {
 }
 
 class _TabNavigatorState extends State<TabNavigator> {
-  final _navigatorKey = GlobalKey<NavigatorState>();
-
   @override
   Widget build(BuildContext context) {
     return CupertinoTabScaffold(

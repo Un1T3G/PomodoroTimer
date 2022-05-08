@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:hive/hive.dart';
 import 'package:pomodoro_timer_task_management/components/popup_modal.dart';
 import 'package:pomodoro_timer_task_management/core/values/colors.dart';
 import 'package:pomodoro_timer_task_management/core/values/constants.dart';
@@ -150,7 +149,7 @@ class _MoreButton extends StatelessWidget {
         'projectKey': cubit.projectKey,
       },
     );
-    cubit.fetchTasks();
+    cubit.updateProject();
   }
 
   @override
@@ -403,7 +402,7 @@ class _TaskCard extends StatelessWidget {
       },
     );
 
-    cubit.fetchTasks();
+    cubit.updateProject();
   }
 
   void _openTimerPage(BuildContext context) async {
@@ -595,7 +594,7 @@ class _TaskAddButton extends StatelessWidget {
       },
     );
 
-    cubit.fetchTasks();
+    cubit.updateProject();
   }
 
   @override

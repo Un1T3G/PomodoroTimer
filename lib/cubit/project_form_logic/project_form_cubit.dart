@@ -1,9 +1,9 @@
 import 'package:bloc/bloc.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:hive/hive.dart';
 import 'package:pomodoro_timer_task_management/core/extensions/color.dart';
 import 'package:pomodoro_timer_task_management/core/values/colors.dart';
 import 'package:pomodoro_timer_task_management/models/project.dart';
+import 'package:pomodoro_timer_task_management/services/project_service.dart';
 
 part 'project_form_state.dart';
 
@@ -20,7 +20,7 @@ class ProjectformCubit extends Cubit<ProjectformState> {
     _init();
   }
 
-  late final Box<Project> _box;
+  late final ProjectService _projectService;
 
   void _init() async {
     if (project != null && projectKey != null) {
@@ -32,50 +32,38 @@ class ProjectformCubit extends Cubit<ProjectformState> {
         ),
       );
     }
-    _box = await Hive.openBox<Project>(boxName);
+
+    _projectService = ProjectService(
+      boxName: boxName,
+    );
+    await _projectService.init();
   }
 
   void changeState(ProjectformState state) {
     emit(state);
   }
 
-  Future<void> saveProject() async {
-    final projects = _box.values.toList();
-
-    if (_projectTitleIsContains(projects) &&
-        project!.title != state.projectTitle) {
-      return;
-    }
-
+  Future<bool> tryUpdateProject() async {
     Project newProject = project!.copyWith(
       title: state.projectTitle,
       color: state.projectColor.toHex(),
     );
 
-    await _box.put(projectKey!, newProject);
+    return await _projectService.tryUpadeProject(
+        project!, newProject, projectKey!);
   }
 
-  Future<void> addProject() async {
-    final projects = _box.values.toList();
-
-    if (_projectTitleIsContains(projects)) {
-      return;
-    }
-
+  Future<bool> tryAddProject() async {
     Project project = Project(
       title: state.projectTitle,
       color: state.projectColor.toHex(),
       date: DateTime.now().toIso8601String(),
     );
 
-    await _box.add(project);
+    return await _projectService.tryAddProject(project);
   }
 
   Future<void> deleteProject() async {
-    await _box.delete(projectKey!);
-  }
-
-  bool _projectTitleIsContains(List<Project> projects) {
-    return projects.any((project) => project.title == state.projectTitle);
+    await _projectService.deleteProject(projectKey!);
   }
 }

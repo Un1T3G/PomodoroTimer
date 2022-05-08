@@ -6,32 +6,39 @@ class ProjectService {
 
   ProjectService({required this.boxName});
 
-  Future<bool> tryAddProject(Project project) async {
-    final box = await Hive.openBox<Project>(boxName);
+  late final Box<Project> _projectBox;
 
-    if (box.values.map((e) => e.title).contains(project.title)) {
+  Future<void> init() async {
+    _projectBox = await Hive.openBox<Project>(boxName);
+  }
+
+  Future<bool> tryAddProject(Project project) async {
+    if (_projectTitleIsContains(project)) {
       return false;
     }
+
+    await _projectBox.add(project);
 
     return true;
   }
 
-  Future<void> upadeProject(Project oldProject, Project newProject) async {
-    if (oldProject == newProject) {
-      return;
+  Future<bool> tryUpadeProject(
+      Project oldProject, Project newProject, int projectKey) async {
+    if (_projectTitleIsContains(newProject) &&
+        oldProject.title != newProject.title) {
+      return false;
     }
 
-    await deleteProject(oldProject);
-    await putProject(newProject);
+    await _projectBox.put(projectKey, newProject);
+
+    return true;
   }
 
-  Future<void> putProject(Project project) async {
-    final box = await Hive.openBox<Project>(boxName);
-    await box.put(project.title, project);
+  Future<void> deleteProject(int projectKey) async {
+    await _projectBox.delete(projectKey);
   }
 
-  Future<void> deleteProject(Project project) async {
-    final box = await Hive.openBox<Project>(boxName);
-    await box.delete(project.title);
+  bool _projectTitleIsContains(Project project) {
+    return _projectBox.values.map((e) => e.title).contains(project.title);
   }
 }

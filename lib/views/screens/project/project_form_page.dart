@@ -259,14 +259,17 @@ class _ActionButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final cubit = context.read<ProjectformCubit>();
     final isEditMode = cubit.state.isEditMode;
-    final action = isEditMode ? cubit.saveProject : cubit.addProject;
+    final action = isEditMode ? cubit.tryUpdateProject : cubit.tryAddProject;
 
     return Align(
       alignment: Alignment.bottomCenter,
       child: ActionButton.withChildText(
         onPressed: () async {
-          await action.call();
-          Navigator.of(context).pop();
+          final canBack = await action.call();
+
+          if (canBack) {
+            Navigator.of(context).pop();
+          }
         },
         title: isEditMode ? 'Save' : 'Add Project',
         margin: const EdgeInsets.all(kDefaultMargin),

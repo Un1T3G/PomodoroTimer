@@ -463,7 +463,7 @@ class _TaskActionButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final cubit = context.read<ProjectDetailFormCubit>();
     final isEditing = cubit.state.isEditing;
-    final action = isEditing ? cubit.saveTask : cubit.addTask;
+    final action = isEditing ? cubit.trySaveTask : cubit.tryAddTask;
 
     return ActionButton.withChildText(
       title: isEditing ? 'Save' : 'Add Task',
@@ -473,8 +473,11 @@ class _TaskActionButton extends StatelessWidget {
         bottom: kDefaultMargin,
       ),
       onPressed: () async {
-        await action.call();
-        Navigator.of(context).pop();
+        final canBack = await action.call();
+
+        if (canBack) {
+          Navigator.of(context).pop();
+        }
       },
     );
   }

@@ -24,7 +24,7 @@ class ProjectDetailLoadedState extends ProjectDetailState {
 
   factory ProjectDetailLoadedState.inital() => ProjectDetailLoadedState(
         projectTitle: '',
-        tasks: [],
+        tasks: const [],
         completedTaskCount: 0,
         totalTaskCount: 0,
         workedTime: 0,

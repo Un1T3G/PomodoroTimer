@@ -3,60 +3,72 @@ import 'package:pomodoro_timer_task_management/models/project.dart';
 import 'package:pomodoro_timer_task_management/models/task.dart';
 
 class TaskService {
-  final Project project;
   final String boxName;
+  final int projectKey;
+  final void Function()? onUpdated;
 
   TaskService({
-    required this.project,
     required this.boxName,
+    required this.projectKey,
+    this.onUpdated,
   });
 
-  bool tryAddTask(Task task) {
-    final tasks = project.tasks ?? List<Task>.empty(growable: true);
+  late final Box<Project> _projectBox;
 
-    if (tasks.map((e) => e.title).contains(task.title)) {
+  Future<void> init() async {
+    _projectBox = await Hive.openBox<Project>(boxName);
+  }
+
+  Future<bool> tryUpdateTask(Task oldTask, Task newTask) async {
+    if (oldTask.title != newTask.title && _taskTitleIsContains(newTask)) {
       return false;
     }
 
-    project.copyWith(tasks: tasks..add(task));
+    final tasks = getTasks();
+    final index = tasks.indexOf(oldTask);
 
-    _updateProject();
+    tasks.removeAt(index);
+    tasks.insert(index, newTask);
+
+    await _updateTasks(tasks);
 
     return true;
   }
 
-  void updateTask(Task task) {
-    final tasks = project.tasks ?? List<Task>.empty(growable: true);
-    final index = tasks.indexWhere((e) => e.title == task.title);
-
-    if (index == -1) {
-      return;
+  Future<bool> tryAddTask(Task task) async {
+    if (_taskTitleIsContains(task)) {
+      return false;
     }
 
-    tasks[index] = task;
+    final tasks = getTasks();
+    tasks.add(task);
 
-    project.copyWith(tasks: tasks);
+    await _updateTasks(tasks);
 
-    _updateProject();
+    return true;
   }
 
-  void deleteTask(Task task) {
-    final tasks = project.tasks ?? List<Task>.empty(growable: true);
-    final index = tasks.indexWhere((e) => e.title == task.title);
+  Future<void> deleteTask(Task task) async {
+    final tasks = getTasks();
 
-    if (index == -1) {
-      return;
-    }
+    tasks.remove(task);
 
-    tasks.removeAt(index);
-
-    project.copyWith(tasks: tasks);
-
-    _updateProject();
+    await _updateTasks(tasks);
   }
 
-  Future<void> _updateProject() async {
-    final box = await Hive.openBox<Project>(boxName);
-    await box.put(project.title, project);
+  List<Task> getTasks() {
+    final project = _projectBox.get(projectKey)!;
+    return project.tasks ?? [];
+  }
+
+  bool _taskTitleIsContains(Task title) {
+    final tasks = _projectBox.get(projectKey)!.tasks!;
+    return tasks.map((e) => e.title).contains(title.title);
+  }
+
+  Future<void> _updateTasks(List<Task> tasks) async {
+    final project = _projectBox.get(projectKey)!;
+    await _projectBox.put(projectKey, project.copyWith(tasks: tasks));
+    onUpdated?.call();
   }
 }
