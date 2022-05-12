@@ -2,7 +2,18 @@
 
 App assists you in organizing your tasks and accomplishing them efficiently with the help of the Pomodoro Technique timer.
 
-Used packages:
+## Screenshots
+![screenshot_01](https://github.com/Un1T3G/PomodoroTimer/blob/main/screenshots/Screenshot_1.png?raw=true)
+![screenshot_02](https://github.com/Un1T3G/PomodoroTimer/blob/main/screenshots/Screenshot_2.png?raw=true)
+![screenshot_03](https://github.com/Un1T3G/PomodoroTimer/blob/main/screenshots/Screenshot_3.png?raw=true)
+![screenshot_04](https://github.com/Un1T3G/PomodoroTimer/blob/main/screenshots/Screenshot_4.png?raw=true)
+![screenshot_05](https://github.com/Un1T3G/PomodoroTimer/blob/main/screenshots/Screenshot_5.png?raw=true)
+![screenshot_06](https://github.com/Un1T3G/PomodoroTimer/blob/main/screenshots/Screenshot_6.png?raw=true)
+![screenshot_07](https://github.com/Un1T3G/PomodoroTimer/blob/main/screenshots/Screenshot_7.png?raw=true)
+![screenshot_08](https://github.com/Un1T3G/PomodoroTimer/blob/main/screenshots/Screenshot_8.png?raw=true)
+![screenshot_09](https://github.com/Un1T3G/PomodoroTimer/blob/main/screenshots/Screenshot_9.png?raw=true)
+
+## Used packages:
 - [Flutter bloc](https://pub.dev/packages/flutter_bloc)
 - [Hive](https://pub.dev/packages/hive)
 - [Flutter hive](https://pub.dev/packages/hive_flutter)
