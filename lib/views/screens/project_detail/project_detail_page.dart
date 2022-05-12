@@ -392,6 +392,7 @@ class _TaskCard extends StatelessWidget {
 
     if (_taskIsWorking(context)) {
       _openTimerStopModal(context);
+      return;
     }
 
     await Navigator.of(context).pushNamed(
@@ -420,7 +421,6 @@ class _TaskCard extends StatelessWidget {
 
     if (result) {
       TabNavigator.navigate(context, MainNavigationRoutes.timer);
-      //Navigator.of(context).pushNamed(MainNavigationRoutes.timer);
     } else {
       _openTimerStopModal(context);
     }
