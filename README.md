@@ -2,6 +2,8 @@
 
 App assists you in organizing your tasks and accomplishing them efficiently with the help of the Pomodoro Technique timer.
 
+- [Design](https://dribbble.com/shots/11897384-Pomodoro-Timer-App?utm_source=Clipboard_Shot&utm_campaign=Novaslide&utm_content=Pomodoro%20Timer%20App&utm_medium=Social_Share&utm_source=Clipboard_Shot&utm_campaign=Novaslide&utm_content=Pomodoro%20Timer%20App&utm_medium=Social_Share)
+
 ## Screenshots
 
 <table>
