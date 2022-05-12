@@ -19,9 +19,13 @@ class TaskWorkCubit extends Cubit<TaskWorkState> {
 
   void init() async {
     _timerTaskBox = await Hive.openBox<TimerTask>(kTimerTaskBox);
-
     if (_timerTaskBox.isNotEmpty) {
       _timerTask = _timerTaskBox.values.first;
+      _taskService = TaskService(
+        boxName: _timerTask!.boxName,
+        projectKey: _timerTask!.projectKey,
+      );
+      await _taskService!.init();
       emit(state.copyWith(task: _timerTask!.task));
     }
   }
@@ -94,15 +98,15 @@ class TaskWorkCubit extends Cubit<TaskWorkState> {
   }
 
   void _saveChanges({bool taskIsDone = false}) async {
-    if (_timerTask != null) {
+    if (_taskService != null) {
       await _updateTask(taskIsDone);
     }
+
+    _reset();
 
     if (_timerTaskBox.isNotEmpty) {
       await _timerTaskBox.delete(kTimerTaskBox);
     }
-
-    _reset();
   }
 
   void _reset() {

@@ -28,6 +28,7 @@ class TimerState {
   final TimerMode mode;
   final TimerStatus status;
   final int currentCycle;
+  final PomodoroTimer pomodoroTimer;
 
   TimerState({
     required this.duration,
@@ -35,15 +36,17 @@ class TimerState {
     required this.mode,
     required this.status,
     required this.currentCycle,
+    required this.pomodoroTimer,
   });
 
   factory TimerState.initial() {
     return TimerState(
-      duration: 0,
+      duration: 1,
       currentDuration: 0,
       mode: TimerMode.work,
       status: TimerStatus.stopped,
       currentCycle: 0,
+      pomodoroTimer: PomodoroTimer.initial(),
     );
   }
 
@@ -53,6 +56,7 @@ class TimerState {
     TimerMode? mode,
     TimerStatus? status,
     int? currentCycle,
+    PomodoroTimer? pomodoroTimer,
   }) {
     return TimerState(
       duration: duration ?? this.duration,
@@ -60,6 +64,7 @@ class TimerState {
       mode: mode ?? this.mode,
       status: status ?? this.status,
       currentCycle: currentCycle ?? this.currentCycle,
+      pomodoroTimer: pomodoroTimer ?? this.pomodoroTimer,
     );
   }
 
@@ -72,7 +77,8 @@ class TimerState {
         other.currentDuration == currentDuration &&
         other.mode == mode &&
         other.status == status &&
-        other.currentCycle == currentCycle;
+        other.currentCycle == currentCycle &&
+        other.pomodoroTimer == pomodoroTimer;
   }
 
   @override
@@ -81,5 +87,6 @@ class TimerState {
       currentDuration.hashCode ^
       mode.hashCode ^
       status.hashCode ^
-      currentCycle.hashCode;
+      currentCycle.hashCode ^
+      pomodoroTimer.hashCode;
 }

@@ -2,15 +2,21 @@ import 'package:flutter/cupertino.dart';
 import 'package:pomodoro_timer_task_management/core/values/colors.dart';
 
 class BackButton extends StatelessWidget {
-  const BackButton({Key? key}) : super(key: key);
+  const BackButton({
+    Key? key,
+    this.margin,
+  }) : super(key: key);
+
+  final EdgeInsets? margin;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(
-        left: 8,
-        top: 10,
-      ),
+      padding: margin ??
+          const EdgeInsets.only(
+            left: 8,
+            top: 10,
+          ),
       child: CupertinoButton(
         minSize: 0,
         padding: EdgeInsets.zero,

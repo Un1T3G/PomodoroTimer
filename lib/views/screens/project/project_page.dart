@@ -11,7 +11,7 @@ import 'package:pomodoro_timer_task_management/views/widgets/action_button.dart'
 import 'package:pomodoro_timer_task_management/views/widgets/card_title.dart';
 import 'package:pomodoro_timer_task_management/views/widgets/list_button.dart';
 import 'package:pomodoro_timer_task_management/views/widgets/page_title.dart';
-import 'package:pomodoro_timer_task_management/views/widgets/rouned_card.dart';
+import 'package:pomodoro_timer_task_management/views/widgets/rounded_card.dart';
 
 class ProjectsPage extends StatelessWidget {
   const ProjectsPage({Key? key}) : super(key: key);
@@ -106,7 +106,7 @@ class _MainProjectList extends StatelessWidget {
     final state = context.watch<ProjectCubit>().state;
     final projects = (state as ProjectLoaded).mainProjects;
 
-    return RounedCard(
+    return RoundedCard(
       padding: const EdgeInsets.symmetric(horizontal: kDefaultMargin),
       child: Column(
         children: List.generate(
@@ -161,7 +161,7 @@ class _ProjectList extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const CardTitle(title: 'Projects'),
-              RounedCard(
+              RoundedCard(
                 padding: const EdgeInsets.symmetric(horizontal: kDefaultMargin),
                 child: Column(
                   children: List.generate(
@@ -212,17 +212,17 @@ class _ProjectAddButton extends StatelessWidget {
       childAlignment: Alignment.centerLeft,
       child: Row(
         mainAxisSize: MainAxisSize.min,
-        children: const [
+        children: [
           Icon(
             CupertinoIcons.add,
-            color: CupertinoColors.systemIndigo,
+            color: CupertinoTheme.of(context).primaryColor,
           ),
-          SizedBox(width: kDefaultMargin / 2),
+          const SizedBox(width: kDefaultMargin / 2),
           Text(
             'Add Project',
             style: TextStyle(
               fontSize: 18,
-              color: CupertinoColors.systemIndigo,
+              color: CupertinoTheme.of(context).primaryColor,
             ),
           ),
         ],

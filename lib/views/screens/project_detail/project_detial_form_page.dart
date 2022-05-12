@@ -13,7 +13,7 @@ import 'package:pomodoro_timer_task_management/views/widgets/back_button.dart';
 import 'package:pomodoro_timer_task_management/views/widgets/card_title.dart';
 import 'package:pomodoro_timer_task_management/views/widgets/list_button.dart';
 import 'package:pomodoro_timer_task_management/views/widgets/page_title.dart';
-import 'package:pomodoro_timer_task_management/views/widgets/rouned_card.dart';
+import 'package:pomodoro_timer_task_management/views/widgets/rounded_card.dart';
 
 class ProjectDetailFormPage extends StatelessWidget {
   const ProjectDetailFormPage({
@@ -130,7 +130,7 @@ class _TaskNameField extends StatelessWidget {
     final cubit = context.read<ProjectDetailFormCubit>();
     final state = cubit.state;
 
-    return RounedCard.withHorizontalMargin(
+    return RoundedCard.withHorizontalMargin(
       child: CupertinoTextField(
         padding: EdgeInsets.zero,
         placeholder: 'Task name',
@@ -176,7 +176,7 @@ class _TaskPriorityPicker extends StatelessWidget {
   Widget build(BuildContext context) {
     final priority = context.watch<ProjectDetailFormCubit>().state.taskPriority;
 
-    return RounedCard.withHorizontalMargin(
+    return RoundedCard.withHorizontalMargin(
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -272,7 +272,7 @@ class _TaskTimerSettings extends StatelessWidget {
     final cubit = context.watch<ProjectDetailFormCubit>();
     final pomodoroTimer = cubit.state.pomodoroTimer;
 
-    return RounedCard.withHorizontalMargin(
+    return RoundedCard.withHorizontalMargin(
       child: Column(
         children: [
           Row(
@@ -417,10 +417,11 @@ class _TaskSettings extends StatelessWidget {
     final state = cubit.state;
     final pomodoroTimer = state.pomodoroTimer;
 
-    return RounedCard.withHorizontalMargin(
+    return RoundedCard.withHorizontalMargin(
       child: Column(
         children: [
           ListButton.withTrailingSwitch(
+            context: context,
             iconData: CupertinoIcons.bell,
             iconColor: kTextColor,
             title: 'Notifications',
@@ -436,6 +437,7 @@ class _TaskSettings extends StatelessWidget {
             },
           ),
           ListButton.withTrailingSwitch(
+            context: context,
             iconData: CupertinoIcons.play_circle,
             iconColor: kTextColor,
             title: 'Auto start',
@@ -466,6 +468,7 @@ class _TaskActionButton extends StatelessWidget {
     final action = isEditing ? cubit.trySaveTask : cubit.tryAddTask;
 
     return ActionButton.withChildText(
+      context: context,
       title: isEditing ? 'Save' : 'Add Task',
       margin: const EdgeInsets.only(
         left: kDefaultMargin,

@@ -13,7 +13,6 @@ class TimerCubit extends Cubit<TimerState> {
 
   late final Ticker _ticker;
   StreamSubscription<int>? _tickerSubscription;
-  late PomodoroTimer _pomodoroTimer;
   late final PomodoroTimerStorageService _pomodoroTimerStorageService;
 
   late final StreamController<TimerEvent> _streamController;
@@ -30,13 +29,12 @@ class TimerCubit extends Cubit<TimerState> {
   }
 
   void setPomodoroTimer(PomodoroTimer pomodoroTimer) {
-    _pomodoroTimer = pomodoroTimer;
-
-    final duration = _pomodoroTimer.workTime;
+    final duration = pomodoroTimer.workTime * 60;
     emit(
       state.copyWith(
         duration: duration,
         currentDuration: duration,
+        pomodoroTimer: pomodoroTimer,
       ),
     );
   }
@@ -90,7 +88,7 @@ class TimerCubit extends Cubit<TimerState> {
       ),
     );
 
-    if (state.currentCycle >= _pomodoroTimer.workCycle * 2 - 1) {
+    if (state.currentCycle >= state.pomodoroTimer.workCycle * 2 - 1) {
       _timerCompleted();
       return;
     }
@@ -114,7 +112,7 @@ class TimerCubit extends Cubit<TimerState> {
         .listen(_mapTickerEventToState)
       ..pause();
 
-    if (_pomodoroTimer.autoStart) {
+    if (state.pomodoroTimer.autoStart) {
       _tickerSubscription?.resume();
       emit(state.copyWith(status: TimerStatus.running));
     }
@@ -123,7 +121,7 @@ class TimerCubit extends Cubit<TimerState> {
   void stop() {
     _tickerSubscription?.cancel();
 
-    final duration = _pomodoroTimer.workTime;
+    final duration = state.pomodoroTimer.workTime * 60;
 
     emit(
       state.copyWith(
@@ -152,7 +150,7 @@ class TimerCubit extends Cubit<TimerState> {
   void _timerCompleted() {
     _tickerSubscription?.cancel();
 
-    final duration = _pomodoroTimer.workTime;
+    final duration = state.pomodoroTimer.workTime * 60;
 
     emit(
       state.copyWith(
@@ -168,13 +166,13 @@ class TimerCubit extends Cubit<TimerState> {
 
   int _getDuration(TimerMode mode, int cycle) {
     if (mode.isWork) {
-      return _pomodoroTimer.workTime;
+      return state.pomodoroTimer.workTime * 60;
     }
 
-    if (cycle ~/ 2 % _pomodoroTimer.longInterval == 0) {
-      return _pomodoroTimer.longBreakTime;
+    if (cycle ~/ 2 % state.pomodoroTimer.longInterval == 0) {
+      return state.pomodoroTimer.longBreakTime * 60;
     }
 
-    return _pomodoroTimer.shortBreakTime;
+    return state.pomodoroTimer.shortBreakTime * 60;
   }
 }

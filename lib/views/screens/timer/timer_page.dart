@@ -1,14 +1,20 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:pomodoro_timer_task_management/components/popup_modal.dart';
 import 'package:pomodoro_timer_task_management/core/values/colors.dart';
 import 'package:pomodoro_timer_task_management/core/values/constants.dart';
+import 'package:pomodoro_timer_task_management/core/values/keys.dart';
 import 'package:pomodoro_timer_task_management/cubit/task_work_logic/task_work_cubit.dart';
 import 'package:pomodoro_timer_task_management/cubit/timer_logic/timer_cubit.dart';
+import 'package:pomodoro_timer_task_management/cubit/timer_logic/timer_event.dart';
+import 'package:pomodoro_timer_task_management/cubit/timer_theme_switcher_logic/timer_theme_switcher_cubit.dart';
 import 'package:pomodoro_timer_task_management/models/task.dart';
 import 'package:pomodoro_timer_task_management/models/task_priority.dart';
+import 'package:pomodoro_timer_task_management/services/notification_service.dart';
+import 'package:pomodoro_timer_task_management/themes/timer_slider_themes.dart';
 import 'package:pomodoro_timer_task_management/views/widgets/action_button.dart';
-import 'package:syncfusion_flutter_gauges/gauges.dart';
+import 'dart:io' show Platform;
 
 class TimerPage extends StatefulWidget {
   const TimerPage({Key? key}) : super(key: key);
@@ -34,9 +40,84 @@ class _TimerPageState extends State<TimerPage> {
   Widget build(BuildContext context) {
     return const CupertinoPageScaffold(
       child: SafeArea(
-        child: _Body(),
+        child: _NotificationService(
+          child: _Body(),
+        ),
       ),
     );
+  }
+}
+
+class _NotificationService extends StatefulWidget {
+  const _NotificationService({
+    Key? key,
+    required this.child,
+  }) : super(key: key);
+
+  final Widget child;
+
+  @override
+  State<_NotificationService> createState() => __NotificationServiceState();
+}
+
+class __NotificationServiceState extends State<_NotificationService> {
+  final _notificationService = NotificationService.instance;
+
+  String? _soundOfWorkEnd;
+  String? _soundOfBreakEnd;
+
+  @override
+  void initState() {
+    super.initState();
+    _initBox();
+    final cubit = context.read<TimerCubit>();
+    cubit.timerStream.listen(_onTimerEvent);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return widget.child;
+  }
+
+  void _initBox() async {
+    final box = await Hive.openBox<String?>(kNotificationSampleBox);
+    _updateSounds();
+    box.listenable().addListener(_updateSounds);
+  }
+
+  void _updateSounds() async {
+    final box = await Hive.openBox<String?>(kNotificationSampleBox);
+
+    _soundOfWorkEnd = box.get(kWorkEndKey);
+    _soundOfBreakEnd = box.get(kBreakEndKey);
+  }
+
+  void _onTimerEvent(TimerEvent event) {
+    final cubit = context.read<TimerCubit>();
+    final state = cubit.state;
+
+    if (Platform.isWindows) {
+      return;
+    }
+
+    if (state.pomodoroTimer.notify == false) {
+      return;
+    }
+
+    if (event is TimerCycleCompletedEvent) {
+      _notificationService.showNotication(
+        title: 'Pomodoro Timer',
+        payload: event.mode.isWork
+            ? 'Work cycle completed'
+            : 'Break cycle completed',
+        soundName: event.mode.isWork ? _soundOfWorkEnd : _soundOfBreakEnd,
+      );
+    } else if (event is TimerCompletedEvent) {
+      _notificationService.showNotication(
+        title: 'Pomodoro Timer',
+        payload: 'Timer completed',
+      );
+    }
   }
 }
 
@@ -242,50 +323,25 @@ class _TimerSlider extends StatelessWidget {
   Widget build(BuildContext context) {
     final cubit = context.watch<TimerCubit>();
     final state = cubit.state;
-    final color = state.mode.isWork ? kIndigoColor : kGreenColor;
+    final color = state.mode.isWork
+        ? CupertinoTheme.of(context).primaryColor
+        : kGreenColor;
     final value = state.currentDuration / state.duration;
+    final timerWidgetIndex =
+        context.watch<TimerThemeSwitcherCubit>().state.selectedThemeIndex;
 
-    return Container(
+    return ConstrainedBox(
       constraints: const BoxConstraints(
         maxWidth: 350,
         maxHeight: 350,
       ),
-      child: SfRadialGauge(
-        axes: [
-          RadialAxis(
-            startAngle: 270,
-            endAngle: 270,
-            minimum: 0,
-            maximum: 1,
-            showLabels: false,
-            showTicks: false,
-            axisLineStyle: AxisLineStyle(
-              thickness: 10,
-              color: color.withOpacity(0.5),
-            ),
-            pointers: [
-              MarkerPointer(
-                value: 0,
-                markerWidth: 10,
-                markerHeight: 10,
-                markerType: MarkerType.circle,
-                color: color,
-              ),
-              RangePointer(
-                value: value,
-                width: 10,
-                color: color,
-              ),
-              MarkerPointer(
-                value: value,
-                markerWidth: 10,
-                markerHeight: 10,
-                markerType: MarkerType.circle,
-                color: color,
-              ),
-            ],
-          )
-        ],
+      child: Container(
+        padding: const EdgeInsets.all(kDefaultMargin),
+        child: getTimerWidget(
+          color: color,
+          value: 1 - value,
+          widgetIndex: timerWidgetIndex,
+        ),
       ),
     );
   }
@@ -312,7 +368,7 @@ class _TimerTitle extends StatelessWidget {
         style: const TextStyle(
           fontSize: 85,
           color: kTextColor,
-          fontWeight: FontWeight.w800,
+          fontFamily: 'Lato-Regular',
         ),
       ),
     );
@@ -330,6 +386,7 @@ class _TimerActionButton extends StatelessWidget {
     await showPopupModal(
       context: context,
       title: 'Are you sure you want to stop timer?',
+      onCancel: cubit.resume,
       onConiform: cubit.stop,
     );
   }
@@ -338,6 +395,7 @@ class _TimerActionButton extends StatelessWidget {
     final cubit = context.read<TimerCubit>();
 
     return ActionButton.withChildText(
+      context: context,
       title: 'Start',
       onPressed: () => cubit.start(),
     );
@@ -350,6 +408,7 @@ class _TimerActionButton extends StatelessWidget {
       children: [
         Flexible(
           child: ActionButton.withChildText(
+            context: context,
             title: 'Stop',
             onPressed: () => _openTimerStopModal(context),
           ),
@@ -357,6 +416,7 @@ class _TimerActionButton extends StatelessWidget {
         const SizedBox(width: kDefaultMargin),
         Flexible(
           child: ActionButton.withChildText(
+            context: context,
             title: 'Pause',
             onPressed: () => cubit.pause(),
           ),
@@ -369,6 +429,7 @@ class _TimerActionButton extends StatelessWidget {
     final cubit = context.read<TimerCubit>();
 
     return ActionButton.withChildText(
+      context: context,
       title: 'Skip Break',
       onPressed: () => cubit.nextCycle(),
     );
@@ -378,6 +439,7 @@ class _TimerActionButton extends StatelessWidget {
     final cubit = context.read<TimerCubit>();
 
     return ActionButton.withChildText(
+      context: context,
       title: 'Resume',
       onPressed: () => cubit.resume(),
     );

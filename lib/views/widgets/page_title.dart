@@ -42,6 +42,7 @@ class PageTitle extends StatelessWidget {
           fontWeight: FontWeight.w800,
           color: CupertinoColors.white,
         ),
+        overflow: TextOverflow.ellipsis,
       ),
     );
   }

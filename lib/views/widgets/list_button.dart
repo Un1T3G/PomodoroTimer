@@ -9,6 +9,7 @@ class ListButton extends StatelessWidget {
     required this.title,
     this.titleColor,
     required this.trailing,
+    this.height,
     required this.onPressed,
   }) : super(key: key);
 
@@ -16,6 +17,7 @@ class ListButton extends StatelessWidget {
   final String title;
   final Color? titleColor;
   final Widget trailing;
+  final double? height;
   final void Function() onPressed;
 
   factory ListButton.withLeadingIcon({
@@ -26,6 +28,7 @@ class ListButton extends StatelessWidget {
     required String title,
     Color? titleColor,
     Widget? trailing,
+    double? height,
     required void Function() onPressed,
   }) {
     return ListButton(
@@ -38,6 +41,7 @@ class ListButton extends StatelessWidget {
       title: title,
       titleColor: titleColor,
       trailing: trailing ?? const SizedBox(),
+      height: height,
       onPressed: onPressed,
     );
   }
@@ -50,6 +54,8 @@ class ListButton extends StatelessWidget {
     required String title,
     Color? titleColor,
     Widget? trailing,
+    double? height,
+    required BuildContext context,
     required bool value,
     required void Function(bool) onPressed,
   }) {
@@ -58,14 +64,16 @@ class ListButton extends StatelessWidget {
       leading: Icon(
         iconData,
         size: iconSize,
-        color: iconColor,
+        color: iconColor ?? kTextColor,
       ),
       title: title,
       titleColor: titleColor,
       trailing: CupertinoSwitch(
+        activeColor: CupertinoTheme.of(context).primaryContrastingColor,
         value: value,
         onChanged: onPressed,
       ),
+      height: height,
       onPressed: () => onPressed.call(!value),
     );
   }
@@ -77,44 +85,50 @@ class ListButton extends StatelessWidget {
       Color? iconColor,
       required String title,
       Color? titleColor,
+      double? height,
       required Function() onPressed}) {
     return ListButton.withLeadingIcon(
       key: key,
       iconData: iconData,
       iconSize: iconSize,
-      iconColor: iconColor,
+      iconColor: iconColor ?? kTextColor,
       title: title,
       titleColor: titleColor,
       trailing: const Icon(
         CupertinoIcons.chevron_forward,
         color: kGreyColor,
       ),
+      height: height,
       onPressed: onPressed,
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoButton(
-      padding: const EdgeInsets.symmetric(vertical: kDefaultMargin / 2),
-      onPressed: onPressed.call,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          leading,
-          const SizedBox(width: kDefaultMargin / 2),
-          Expanded(
-            child: Text(
-              title,
-              style: TextStyle(
-                fontSize: 18,
-                color: titleColor ?? CupertinoColors.white,
+    return SizedBox(
+      height: height,
+      child: CupertinoButton(
+        padding: const EdgeInsets.symmetric(vertical: kDefaultMargin / 2),
+        onPressed: onPressed.call,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            leading,
+            const SizedBox(width: kDefaultMargin / 2),
+            Expanded(
+              child: Text(
+                title,
+                style: TextStyle(
+                  fontSize: 18,
+                  color: titleColor ?? CupertinoColors.white,
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
             ),
-          ),
-          const SizedBox(width: kDefaultMargin / 2),
-          trailing,
-        ],
+            const SizedBox(width: kDefaultMargin / 2),
+            trailing,
+          ],
+        ),
       ),
     );
   }

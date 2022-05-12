@@ -62,7 +62,7 @@ class TaskService {
   }
 
   bool _taskTitleIsContains(Task title) {
-    final tasks = _projectBox.get(projectKey)!.tasks!;
+    final tasks = getTasks();
     return tasks.map((e) => e.title).contains(title.title);
   }
 

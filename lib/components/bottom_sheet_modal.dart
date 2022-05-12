@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:pomodoro_timer_task_management/core/values/colors.dart';
 import 'package:pomodoro_timer_task_management/core/values/constants.dart';
 import 'package:pomodoro_timer_task_management/views/widgets/list_button.dart';
-import 'package:pomodoro_timer_task_management/views/widgets/rouned_card.dart';
+import 'package:pomodoro_timer_task_management/views/widgets/rounded_card.dart';
 
 Future<void> showBottomSheetModal({
   required BuildContext context,
@@ -75,7 +75,7 @@ class _Body extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
-        RounedCard(
+        RoundedCard(
           margin: const EdgeInsets.all(kDefaultMargin),
           child: Column(
             children: [

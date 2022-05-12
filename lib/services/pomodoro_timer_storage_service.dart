@@ -10,7 +10,7 @@ class PomodoroTimerStorageService {
   }
 
   PomodoroTimer getPomodoroTimer() {
-    return _box.values.first;
+    return _box.get(kPomodoroTimerBox)!;
   }
 
   Future<void> savePomodoroTimer(PomodoroTimer pomodoroTimer) async {

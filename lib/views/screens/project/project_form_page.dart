@@ -10,7 +10,7 @@ import 'package:pomodoro_timer_task_management/views/widgets/action_button.dart'
 import 'package:pomodoro_timer_task_management/views/widgets/back_button.dart';
 import 'package:pomodoro_timer_task_management/views/widgets/card_title.dart';
 import 'package:pomodoro_timer_task_management/views/widgets/page_title.dart';
-import 'package:pomodoro_timer_task_management/views/widgets/rouned_card.dart';
+import 'package:pomodoro_timer_task_management/views/widgets/rounded_card.dart';
 
 class ProjectFormPage extends StatelessWidget {
   const ProjectFormPage({
@@ -134,7 +134,7 @@ class _ProjectNameField extends StatelessWidget {
     final color =
         context.select((ProjectformCubit cubit) => cubit.state.projectColor);
 
-    return RounedCard.withHorizontalMargin(
+    return RoundedCard.withHorizontalMargin(
       child: CupertinoTextField(
         prefix: Padding(
           padding: const EdgeInsets.only(right: 10),
@@ -191,7 +191,7 @@ class _ProjectColorPicker extends StatelessWidget {
     final color =
         context.select((ProjectformCubit cubit) => cubit.state.projectColor);
 
-    return RounedCard.withHorizontalMargin(
+    return RoundedCard.withHorizontalMargin(
       child: GridView.count(
         crossAxisCount: 6,
         shrinkWrap: true,
@@ -264,6 +264,7 @@ class _ActionButton extends StatelessWidget {
     return Align(
       alignment: Alignment.bottomCenter,
       child: ActionButton.withChildText(
+        context: context,
         onPressed: () async {
           final canBack = await action.call();
 

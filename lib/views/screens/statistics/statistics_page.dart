@@ -8,7 +8,7 @@ import 'package:pomodoro_timer_task_management/models/project.dart';
 import 'package:pomodoro_timer_task_management/views/widgets/action_button.dart';
 import 'package:pomodoro_timer_task_management/views/widgets/card_title.dart';
 import 'package:pomodoro_timer_task_management/views/widgets/page_title.dart';
-import 'package:pomodoro_timer_task_management/views/widgets/rouned_card.dart';
+import 'package:pomodoro_timer_task_management/views/widgets/rounded_card.dart';
 import 'package:syncfusion_flutter_gauges/gauges.dart';
 
 class StatisticsPage extends StatelessWidget {
@@ -83,7 +83,7 @@ class _Segment extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return RounedCard(
+    return RoundedCard(
       padding: const EdgeInsets.all(2),
       child: Row(
         children: const [
@@ -121,9 +121,11 @@ class _SegmentItem extends StatelessWidget {
 
     return Expanded(
       child: ActionButton.withChildText(
+        context: context,
         title: title,
-        color:
-            cubit.statisticsType == statisticsType ? kIndigoColor : kCardColor,
+        color: cubit.statisticsType == statisticsType
+            ? CupertinoTheme.of(context).primaryColor
+            : kCardColor,
         onPressed: () => cubit.changeStatisticsType(statisticsType),
         padding: const EdgeInsets.symmetric(vertical: 4),
       ),
@@ -176,6 +178,7 @@ class _Slider extends StatelessWidget {
           showTicks: false,
           axisLineStyle: AxisLineStyle(
             thickness: 10,
+            cornerStyle: CornerStyle.bothCurve,
             color: color.withOpacity(0.3),
           ),
           pointers: [
@@ -190,12 +193,14 @@ class _Slider extends StatelessWidget {
               value: value,
               width: 10,
               color: color,
+              enableAnimation: true,
             ),
             MarkerPointer(
               value: value,
               markerWidth: 10,
               markerHeight: 10,
               markerType: MarkerType.circle,
+              enableAnimation: true,
               color: color,
             ),
           ],
@@ -212,6 +217,13 @@ class _Diagram extends StatelessWidget {
   Widget build(BuildContext context) {
     final cubit = context.watch<StatisticsCubit>();
     final state = cubit.state as StatisticsLoadedState;
+
+    final workValue =
+        state.workedTime / (state.totalWorkTime == 0 ? 1 : state.totalWorkTime);
+    final projectValue = state.completedProjectCount /
+        (state.totalProjectCount == 0 ? 1 : state.totalProjectCount);
+    final taskValue = state.completedTaskCount /
+        (state.totalTaskCount == 0 ? 1 : state.totalTaskCount);
 
     return Flexible(
       child: Center(
@@ -230,18 +242,17 @@ class _Diagram extends StatelessWidget {
                   children: [
                     _Slider(
                       color: kIndigoColor,
-                      value: state.workedTime / state.totalWorkTime,
+                      value: workValue,
                       radiusFactor: 1,
                     ),
                     _Slider(
                       color: kRedColor,
-                      value:
-                          state.completedProjectCount / state.totalProjectCount,
+                      value: projectValue,
                       radiusFactor: 0.75,
                     ),
                     _Slider(
                       color: kYellowColor,
-                      value: state.completedTaskCount / state.totalTaskCount,
+                      value: taskValue,
                       radiusFactor: 0.50,
                     ),
                   ],
@@ -310,6 +321,10 @@ class _InformationCard extends StatelessWidget {
 class _Information extends StatelessWidget {
   const _Information({Key? key}) : super(key: key);
 
+  String _numberFormat(double number) {
+    return number.toStringAsFixed(1);
+  }
+
   @override
   Widget build(BuildContext context) {
     final cubit = context.watch<StatisticsCubit>();
@@ -323,20 +338,20 @@ class _Information extends StatelessWidget {
           children: [
             _InformationCard(
               color: kIndigoColor,
-              title: 'Фокусировка',
-              value: '${state.workedTime} часов',
+              title: 'Focused',
+              value: '${_numberFormat(state.workedTime)} hours',
             ),
             const SizedBox(height: 12),
             _InformationCard(
               color: kRedColor,
-              title: 'Проекты',
-              value: '${state.completedProjectCount} завершено',
+              title: 'Projects',
+              value: '${state.completedProjectCount} completed',
             ),
             const SizedBox(height: 12),
             _InformationCard(
               color: kYellowColor,
-              title: 'Задача',
-              value: '${state.completedTaskCount} завершено',
+              title: 'Tasks',
+              value: '${state.completedTaskCount} completed',
             ),
           ],
         ),
@@ -359,7 +374,16 @@ class _TopProjects extends StatelessWidget {
         : Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const CardTitle(title: 'Top projects'),
+              CardTitle(
+                title: 'Top projects',
+                trailing: Text(
+                  'Top 10',
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: CupertinoTheme.of(context).primaryColor,
+                  ),
+                ),
+              ),
               ...List.generate(projects.length,
                   (index) => _ProjectCard(project: projects[index])),
             ],
@@ -385,6 +409,7 @@ class _ProjectCard extends StatelessWidget {
           color: kTextColor,
           fontWeight: FontWeight.w800,
         ),
+        overflow: TextOverflow.ellipsis,
       ),
     );
   }
@@ -420,7 +445,7 @@ class _ProjectCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final cubit = context.read<StatisticsCubit>();
 
-    return RounedCard(
+    return RoundedCard(
       child: Column(
         children: [
           Row(

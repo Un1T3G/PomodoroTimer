@@ -2,8 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:pomodoro_timer_task_management/core/values/colors.dart';
 import 'package:pomodoro_timer_task_management/core/values/constants.dart';
 
-class RounedCard extends StatelessWidget {
-  const RounedCard({
+class RoundedCard extends StatelessWidget {
+  const RoundedCard({
     Key? key,
     required this.child,
     this.padding,
@@ -14,11 +14,11 @@ class RounedCard extends StatelessWidget {
   final EdgeInsets? padding;
   final EdgeInsets? margin;
 
-  factory RounedCard.withHorizontalMargin({
+  factory RoundedCard.withHorizontalMargin({
     Key? key,
     required Widget child,
   }) {
-    return RounedCard(
+    return RoundedCard(
       key: key,
       child: child,
       margin: const EdgeInsets.only(

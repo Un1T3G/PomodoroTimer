@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:pomodoro_timer_task_management/core/values/colors.dart';
 import 'package:pomodoro_timer_task_management/core/values/constants.dart';
 
 class ActionButton extends StatelessWidget {
@@ -29,6 +28,7 @@ class ActionButton extends StatelessWidget {
     Alignment? childAlignment,
     EdgeInsets? padding,
     EdgeInsets? margin,
+    required BuildContext context,
   }) {
     return ActionButton(
       key: key,
@@ -39,7 +39,8 @@ class ActionButton extends StatelessWidget {
         title,
         style: TextStyle(
           fontSize: 18,
-          color: titleColor ?? CupertinoColors.white,
+          color: titleColor ??
+              CupertinoTheme.of(context).textTheme.actionTextStyle.color,
         ),
       ),
       margin: margin,
@@ -55,7 +56,7 @@ class ActionButton extends StatelessWidget {
         padding: margin ?? EdgeInsets.zero,
         child: CupertinoButton(
           minSize: 0,
-          color: color ?? kIndigoColor,
+          color: color ?? CupertinoTheme.of(context).primaryColor,
           alignment: childAlignment ?? Alignment.center,
           padding: padding ??
               const EdgeInsets.symmetric(vertical: kDefaultMargin / 2),

@@ -67,11 +67,12 @@ class ProjectDetailCubit extends Cubit<ProjectDetailState> {
   }
 
   void toggleTask(Task task) async {
-    task = task.copyWith(
+    final oldTask = task;
+    final newTask = task.copyWith(
       isDone: !task.isDone!,
     );
 
-    await _taskService.tryUpdateTask(task, task);
+    await _taskService.tryUpdateTask(oldTask, newTask);
   }
 
   void updateProject() {

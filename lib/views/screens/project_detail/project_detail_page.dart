@@ -12,11 +12,12 @@ import 'package:pomodoro_timer_task_management/models/task.dart';
 import 'package:pomodoro_timer_task_management/models/task_priority.dart';
 import 'package:pomodoro_timer_task_management/models/timer_task.dart';
 import 'package:pomodoro_timer_task_management/routes/main_navigation.dart';
+import 'package:pomodoro_timer_task_management/views/screens/tab_navigator/tab_navigator.dart';
 import 'package:pomodoro_timer_task_management/views/widgets/action_button.dart';
 import 'package:pomodoro_timer_task_management/views/widgets/back_button.dart';
 import 'package:pomodoro_timer_task_management/views/widgets/card_title.dart';
 import 'package:pomodoro_timer_task_management/views/widgets/page_title.dart';
-import 'package:pomodoro_timer_task_management/views/widgets/rouned_card.dart';
+import 'package:pomodoro_timer_task_management/views/widgets/rounded_card.dart';
 
 class ProjectDetailPage extends StatelessWidget {
   const ProjectDetailPage({
@@ -162,7 +163,7 @@ class _MoreButton extends StatelessWidget {
             minSize: 0,
             padding: EdgeInsets.zero,
             child: const Icon(
-              CupertinoIcons.plus_circled,
+              CupertinoIcons.slash_circle,
               color: kTextColor,
               size: 25,
             ),
@@ -287,7 +288,7 @@ class _TaskStatisticsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return RounedCard(
+    return RoundedCard(
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -418,7 +419,8 @@ class _TaskCard extends StatelessWidget {
     final result = await taskWorkCubit.trySetTimerTask(timerTask);
 
     if (result) {
-      Navigator.of(context).pushNamed(MainNavigationRoutes.timer);
+      TabNavigator.navigate(context, MainNavigationRoutes.timer);
+      //Navigator.of(context).pushNamed(MainNavigationRoutes.timer);
     } else {
       _openTimerStopModal(context);
     }
@@ -604,6 +606,7 @@ class _TaskAddButton extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(kDefaultMargin),
         child: ActionButton.withChildText(
+          context: context,
           title: 'Add Task',
           onPressed: () => _openTaskFormPage(context),
         ),

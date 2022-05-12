@@ -27,6 +27,8 @@ final _projects = [
 Future<void> insertDefaultData() async {
   await _insertDefaultProjects();
   await _insertDefaultPomodoroTimer();
+  await _insertDefaultTheme();
+  await _insertDefaultTimerTheme();
 }
 
 Future<void> _insertDefaultProjects() async {
@@ -48,6 +50,21 @@ Future<void> _insertDefaultPomodoroTimer() async {
 
   if (box.isEmpty) {
     final pomodoroTimer = PomodoroTimer.initial();
-    await box.add(pomodoroTimer);
+    await box.put(kPomodoroTimerBox, pomodoroTimer);
+  }
+}
+
+Future<void> _insertDefaultTheme() async {
+  final box = await Hive.openBox<int>(kThemeBox);
+
+  if (box.isEmpty) {
+    await box.put(kThemeBox, 0);
+  }
+}
+
+Future<void> _insertDefaultTimerTheme() async {
+  final box = await Hive.openBox<int>(kTimerThemeBox);
+  if (box.isEmpty) {
+    await box.put(kTimerThemeBox, 0);
   }
 }

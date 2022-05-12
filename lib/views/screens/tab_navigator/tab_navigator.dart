@@ -1,30 +1,74 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pomodoro_timer_task_management/core/values/colors.dart';
-import 'package:pomodoro_timer_task_management/cubit/tab_navigator_logic/tab_navigator_cubit.dart';
 import 'package:pomodoro_timer_task_management/routes/main_navigation.dart';
+import 'package:pomodoro_timer_task_management/routes/settings_navigation.dart';
 import 'package:pomodoro_timer_task_management/views/screens/project/project_page.dart';
 import 'package:pomodoro_timer_task_management/views/screens/settings/settings_page.dart';
 import 'package:pomodoro_timer_task_management/views/screens/statistics/statistics_page.dart';
 import 'package:pomodoro_timer_task_management/views/screens/timer/timer_page.dart';
 
+final _tabController = CupertinoTabController();
+
 class TabNavigator extends StatefulWidget {
-  const TabNavigator({Key? key}) : super(key: key);
+  const TabNavigator({
+    Key? key,
+    this.tabIndex,
+  }) : super(key: key);
+
+  final int? tabIndex;
+
+  static int _getTabIndex(String route) {
+    switch (route) {
+      case MainNavigationRoutes.timer:
+        return 0;
+      case MainNavigationRoutes.projects:
+        return 1;
+      case MainNavigationRoutes.statistics:
+        return 2;
+      case MainNavigationRoutes.settings:
+        return 3;
+      default:
+        return -1;
+    }
+  }
+
+  static void navigate(BuildContext context, String route) async {
+    Navigator.of(context).pop();
+    _tabController.index = _getTabIndex(route);
+  }
 
   @override
   State<TabNavigator> createState() => _TabNavigatorState();
 }
 
 class _TabNavigatorState extends State<TabNavigator> {
+  final _timerPageKey = GlobalKey<NavigatorState>();
+  final _projectsPageKey = GlobalKey<NavigatorState>();
+  final _statisticsPageKey = GlobalKey<NavigatorState>();
+  final _settingsPageKey = GlobalKey<NavigatorState>();
+
+  int _tabIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController.addListener(() {
+      setState(() {
+        _tabIndex = _tabController.index;
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return CupertinoTabScaffold(
+      controller: _tabController,
       tabBar: CupertinoTabBar(
-        activeColor: kIndigoColor,
-        inactiveColor: kGreyColor,
+        currentIndex: _tabIndex,
         backgroundColor: kCardColor,
-        currentIndex: context.watch<TabNavigatorCubit>().state.tabIndex,
-        items: const <BottomNavigationBarItem>[
+        activeColor: CupertinoTheme.of(context).primaryColor,
+        inactiveColor: kGreyColor,
+        items: const [
           BottomNavigationBarItem(
             icon: Icon(CupertinoIcons.alarm),
             label: 'Timer',
@@ -47,27 +91,33 @@ class _TabNavigatorState extends State<TabNavigator> {
         switch (index) {
           case 0:
             return CupertinoTabView(
+              navigatorKey: _timerPageKey,
+              builder: (context) => const TimerPage(),
+              routes: MainNavigation.routes,
               onGenerateRoute: MainNavigation.generateRoute,
-              builder: (_) => const TimerPage(),
             );
           case 1:
             return CupertinoTabView(
+              navigatorKey: _projectsPageKey,
+              builder: (context) => const ProjectsPage(),
+              routes: MainNavigation.routes,
               onGenerateRoute: MainNavigation.generateRoute,
-              builder: (_) => const ProjectsPage(),
             );
           case 2:
             return CupertinoTabView(
+              navigatorKey: _statisticsPageKey,
+              builder: (context) => const StatisticsPage(),
               onGenerateRoute: MainNavigation.generateRoute,
-              builder: (_) => const StatisticsPage(),
             );
           case 3:
             return CupertinoTabView(
-              onGenerateRoute: MainNavigation.generateRoute,
-              builder: (_) => const SettingsPage(),
+              navigatorKey: _settingsPageKey,
+              builder: (context) => const SettingsPage(),
+              onGenerateRoute: SettingsNavigation.generateRoute,
             );
           default:
             return const Center(
-              child: Text('Navigation Error'),
+              child: Text('Error'),
             );
         }
       },

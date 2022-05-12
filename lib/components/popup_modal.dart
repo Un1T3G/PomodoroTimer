@@ -43,6 +43,8 @@ class _PopupModal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final color = CupertinoTheme.of(context).primaryColor;
+
     return GestureDetector(
       onTap: () => _cancel(context),
       child: Container(
@@ -73,18 +75,18 @@ class _PopupModal extends StatelessWidget {
                 children: [
                   Flexible(
                     child: ActionButton.withChildText(
-                      color: kIndigoColor.withOpacity(0.3),
-                      title: 'Cancel',
-                      titleColor: kIndigoColor,
+                      context: context,
+                      color: color.withOpacity(0.3),
+                      title: 'No',
+                      titleColor: color,
                       onPressed: () => _cancel(context),
                     ),
                   ),
                   const SizedBox(width: kDefaultMargin),
                   Flexible(
                     child: ActionButton.withChildText(
-                      color: kIndigoColor,
-                      title: 'Coniform',
-                      titleColor: kTextColor,
+                      context: context,
+                      title: 'Yes',
                       onPressed: () => _coniform(context),
                     ),
                   ),
