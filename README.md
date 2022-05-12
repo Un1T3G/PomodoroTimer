@@ -3,15 +3,29 @@
 App assists you in organizing your tasks and accomplishing them efficiently with the help of the Pomodoro Technique timer.
 
 ## Screenshots
-![screenshot_01](https://github.com/Un1T3G/PomodoroTimer/blob/main/screenshots/Screenshot_1.png?raw=true)
-![screenshot_02](https://github.com/Un1T3G/PomodoroTimer/blob/main/screenshots/Screenshot_2.png?raw=true)
-![screenshot_03](https://github.com/Un1T3G/PomodoroTimer/blob/main/screenshots/Screenshot_3.png?raw=true)
-![screenshot_04](https://github.com/Un1T3G/PomodoroTimer/blob/main/screenshots/Screenshot_4.png?raw=true)
-![screenshot_05](https://github.com/Un1T3G/PomodoroTimer/blob/main/screenshots/Screenshot_5.png?raw=true)
-![screenshot_06](https://github.com/Un1T3G/PomodoroTimer/blob/main/screenshots/Screenshot_6.png?raw=true)
-![screenshot_07](https://github.com/Un1T3G/PomodoroTimer/blob/main/screenshots/Screenshot_7.png?raw=true)
-![screenshot_08](https://github.com/Un1T3G/PomodoroTimer/blob/main/screenshots/Screenshot_8.png?raw=true)
-![screenshot_09](https://github.com/Un1T3G/PomodoroTimer/blob/main/screenshots/Screenshot_9.png?raw=true)
+![screenshot_01](https://github.com/Un1T3G/PomodoroTimer/blob/main/screenshots/Screenshot_1.png?raw=true) |
+![screenshot_02](https://github.com/Un1T3G/PomodoroTimer/blob/main/screenshots/Screenshot_2.png?raw=true) |
+![screenshot_03](https://github.com/Un1T3G/PomodoroTimer/blob/main/screenshots/Screenshot_3.png?raw=true) |
+![screenshot_04](https://github.com/Un1T3G/PomodoroTimer/blob/main/screenshots/Screenshot_4.png?raw=true) |
+![screenshot_05](https://github.com/Un1T3G/PomodoroTimer/blob/main/screenshots/Screenshot_5.png?raw=true) |
+![screenshot_06](https://github.com/Un1T3G/PomodoroTimer/blob/main/screenshots/Screenshot_6.png?raw=true) |
+![screenshot_07](https://github.com/Un1T3G/PomodoroTimer/blob/main/screenshots/Screenshot_7.png?raw=true) |
+![screenshot_08](https://github.com/Un1T3G/PomodoroTimer/blob/main/screenshots/Screenshot_8.png?raw=true) |
+![screenshot_09](https://github.com/Un1T3G/PomodoroTimer/blob/main/screenshots/Screenshot_9.png?raw=true) |
+
+<table>
+  <tr>
+    <td><img src="screenshots/Screenshot_1.png" width=270 height=480></td>
+    <td><img src="screenshots/Screenshot_2.png" width=270 height=480></td>
+    <td><img src="screenshots/Screenshot_3.png" width=270 height=480></td>
+    <td><img src="screenshots/Screenshot_4.png" width=270 height=480></td>
+    <td><img src="screenshots/Screenshot_5.png" width=270 height=480></td>
+    <td><img src="screenshots/Screenshot_6.png" width=270 height=480></td>
+    <td><img src="screenshots/Screenshot_7.png" width=270 height=480></td>
+    <td><img src="screenshots/Screenshot_8.png" width=270 height=480></td>
+    <td><img src="screenshots/Screenshot_9.png" width=270 height=480></td>
+  </tr>
+ </table>
 
 ## Used packages:
 - [Flutter bloc](https://pub.dev/packages/flutter_bloc)
